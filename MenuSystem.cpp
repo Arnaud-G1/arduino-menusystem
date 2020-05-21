@@ -424,6 +424,7 @@ void MenuSystem::select(bool reset) {
 
 bool MenuSystem::back() {
     if (_p_curr_menu != _p_root_menu) {
+        _p_curr_menu->reset();
         _p_curr_menu = const_cast<Menu*>(_p_curr_menu->get_parent());
         return true;
     }
