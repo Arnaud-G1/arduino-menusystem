@@ -258,6 +258,21 @@ public:
                     float increment=1.0,
                     FormatValueFnPtr format_value_fn=nullptr);
 
+    //! Constructor
+    //!
+    //! @param name The name of the menu item.
+    //! @param select_fn The function to call when this MenuItem is selected.
+    //! @param value Default value.
+    //! @param min_value The minimum value.
+    //! @param max_value The maximum value.
+    //! @param increment How much the value should be incremented by.
+    //! @param format_value_fn The custom formatter. If nullptr the String
+    //!                        float formatter will be used.
+    NumericMenuItem(const char* name, uint8_t ee_address, SelectFnPtr select_fn,
+                    float value, float min_value, float max_value,
+                    float increment=1.0,
+                    FormatValueFnPtr format_value_fn=nullptr);
+
     //!
     //! \brief Sets the custom number formatter.
     //!
@@ -269,6 +284,7 @@ public:
     float get_value() const;
     float get_min_value() const;
     float get_max_value() const;
+	uint8_t get_address() const;
 
     void set_value(float value);
     void set_min_value(float value);
@@ -285,6 +301,7 @@ protected:
     virtual Menu* select();
 
 protected:
+	const uint8_t _ee_address;
     float _value;
     float _min_value;
     float _max_value;

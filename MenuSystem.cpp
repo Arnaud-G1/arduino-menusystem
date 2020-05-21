@@ -6,6 +6,8 @@
 #include "MenuSystem.h"
 #include <stdlib.h>
 
+// EEprom to store settings
+#include <EEPROM.h>
 
 // *********************************************************
 // MenuComponent
@@ -266,12 +268,39 @@ NumericMenuItem::NumericMenuItem(const char* basename, SelectFnPtr select_fn,
   _min_value(min_value),
   _max_value(max_value),
   _increment(increment),
+  _ee_address(0xFF),
   _format_value_fn(format_value_fn) {
     if (_increment < 0.0) _increment = -_increment;
     if (_min_value > _max_value) {
         float tmp = _max_value;
         _max_value = _min_value;
         _min_value = tmp;
+    }
+};
+
+NumericMenuItem::NumericMenuItem(const char* basename, uint8_t ee_address, SelectFnPtr select_fn,
+                                 float value, float min_value, float max_value,
+                                 float increment,
+                                 FormatValueFnPtr format_value_fn)
+: MenuItem(basename, select_fn),
+  _value(value),
+  _min_value(min_value),
+  _max_value(max_value),
+  _increment(increment),
+  _ee_address(ee_address),
+  _format_value_fn(format_value_fn) {
+    if (_increment < 0.0) _increment = -_increment;
+    if (_min_value > _max_value) {
+        float tmp = _max_value;
+        _max_value = _min_value;
+        _min_value = tmp;
+    }
+    float init_val;
+    EEPROM.get(_ee_address, init_val); // NaN
+    if (init_val != init_val) {
+        EEPROM.put(_ee_address, value);
+    } else {
+        _value = init_val;  
     }
 };
 
@@ -283,8 +312,11 @@ Menu* NumericMenuItem::select() {
     _has_focus = !_has_focus;
 
     // Only run _select_fn when the user is done editing the value
-    if (!_has_focus && _select_fn != nullptr)
-        _select_fn(this);
+    if (!_has_focus) {
+        if (_ee_address != 0xff) EEPROM.put(_ee_address, _value);
+        if (_select_fn != nullptr) 
+            _select_fn(this);
+    }
     return nullptr;
 }
 
@@ -294,6 +326,10 @@ void NumericMenuItem::render(MenuComponentRenderer const& renderer) const {
 
 float NumericMenuItem::get_value() const {
     return _value;
+}
+
+uint8_t NumericMenuItem::get_address() const {
+    return _ee_address;
 }
 
 float NumericMenuItem::get_min_value() const {
